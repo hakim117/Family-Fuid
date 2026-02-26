@@ -1,10 +1,26 @@
+/* =========================
+   AUDIO
+========================= */
 const correctSound = new Audio("c.mp3");
 const wrongSound   = new Audio("r.mp3");
 
+function playSafe(sound) {
+  try {
+    sound.currentTime = 0;
+    sound.play();
+  } catch (e) {
+    console.warn("Lyd blokkert av browser");
+  }
+}
+
+/* =========================
+   APP
+========================= */
 var app = {
   version: 1,
   currentQ: 0,
-  jsonFile: "questions.json",
+  allData: {},
+  questions: [],
 
   board: $("<div class='gameBoard'>"+
     "<div class='score' id='boardScore'>0</div>"+
@@ -27,7 +43,7 @@ var app = {
     "</div>"+
   "</div>"),
 
-  shuffle: function (array) {
+  shuffle: function(array) {
     let i = array.length;
     while (i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -36,28 +52,17 @@ var app = {
     return array;
   },
 
-  jsonLoaded: function (data) {
-    app.allData = data;
-    app.questions = Object.keys(data);
-    app.shuffle(app.questions);
-    app.makeQuestion(app.currentQ);
-    $("body").append(app.board);
-  },
-
   /* =========================
-     FLIP FUNKSJON (NY)
+     FLIP FUNKSJON
   ========================== */
   flipCard: function(holder) {
     const card = $(".card", holder);
-    const flipped = card.data("flipped");
+    const flipped = card.data("flipped") === true;
 
     TweenLite.to(card, 0.8, {
       rotationX: flipped ? 0 : -180,
       onStart: function () {
-        if (!flipped) {
-          correctSound.currentTime = 0;
-          correctSound.play();
-        }
+        if (!flipped) playSafe(correctSound);
       }
     });
 
@@ -65,7 +70,7 @@ var app = {
     app.getBoardScore();
   },
 
-  makeQuestion: function (qNum) {
+  makeQuestion: function(qNum) {
     const qText = app.questions[qNum];
     const qAnswr = app.allData[qText];
 
@@ -112,25 +117,22 @@ var app = {
 
     cards.data("flipped", false);
 
-    /* Klikk bruker samme flip-funksjon */
     app.board.find(".cardHolder").on("click", function () {
       app.flipCard(this);
     });
   },
 
-  getBoardScore: function () {
+  getBoardScore: function() {
     let score = 0;
-
     app.board.find(".card").each(function () {
       if ($(this).data("flipped")) {
         score += parseInt($(this).find("b").text());
       }
     });
-
     app.board.find("#boardScore").text(score);
   },
 
-  awardPoints: function () {
+  awardPoints: function() {
     const team = $(this).data("team");
     const boardScore = parseInt(app.board.find("#boardScore").text());
     const teamEl = app.board.find("#team" + team);
@@ -139,45 +141,24 @@ var app = {
     app.board.find("#boardScore").text(0);
   },
 
-changeQuestion: function () {
-
-  app.currentQ++;
-
-  // Hvis alle spørsmål er brukt
-  if (app.currentQ >= app.questions.length) {
-
-    // lagre score
-    localStorage.setItem("team1Score",
-      app.board.find("#team1").text());
-
-    localStorage.setItem("team2Score",
-      app.board.find("#team2").text());
-
-    // gå til vinnersiden
-    window.location.href = "winner.html";
-    return;
-  }
-
-  app.makeQuestion(app.currentQ);
-},
-
-  init: function () {
-    $.getJSON(app.jsonFile, app.jsonLoaded);
-    $(document).on("click", "#newQuestion", app.changeQuestion);
-    $(document).on("click", "#awardTeam1", app.awardPoints);
-    $(document).on("click", "#awardTeam2", app.awardPoints);
+  changeQuestion: function() {
+    app.currentQ++;
+    if (app.currentQ >= app.questions.length) {
+      localStorage.setItem("team1Score", app.board.find("#team1").text());
+      localStorage.setItem("team2Score", app.board.find("#team2").text());
+      window.location.href = "winner.html";
+      return;
+    }
+    app.makeQuestion(app.currentQ);
   }
 };
-
 
 /* =========================
    FEIL X
 ========================= */
 function showWrongX() {
   const x = $("<div id='wrongX'>✖</div>");
-
   $("body").append(x);
-
   x.css({
     position: "fixed",
     top: "50%",
@@ -189,45 +170,72 @@ function showWrongX() {
     opacity: 1
   });
 
-  wrongSound.currentTime = 0;
-  wrongSound.play();
+  playSafe(wrongSound);
 
   setTimeout(() => {
     x.fadeOut(300, () => x.remove());
   }, 800);
 }
 
-
 /* =========================
-   KEYBOARD CONTROL (NY)
+   KEYBOARD
 ========================= */
-$(document).on("keydown", function (e) {
-
-  // F = feil
-  if (e.key.toLowerCase() === "f") {
-    showWrongX();
-    return;
-  }
-
-  // Tall 0–9
+$(document).on("keydown", function(e) {
+  if (e.key.toLowerCase() === "f") { showWrongX(); return; }
   if (!/^[0-9]$/.test(e.key)) return;
 
-  let index;
-
-  // 0 = kort 10
-  if (e.key === "0") {
-    index = 9;
-  } else {
-    index = parseInt(e.key) - 1;
-  }
-
+  let index = e.key === "0" ? 9 : parseInt(e.key) - 1;
   const holders = $(".cardHolder").not(".empty");
   const holder = holders.eq(index);
 
-  if (holder.length) {
-    app.flipCard(holder);
-  }
+  if (holder.length) app.flipCard(holder);
 });
 
+/* =========================
+   PARSE CUSTOM INPUT
+========================= */
+function parseCustomInput(text) {
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l);
+  const data = {};
+  let currentQuestion = "";
+  let answers = [];
 
-app.init();
+  lines.forEach(line => {
+    if (/^\d+\./.test(line)) {
+      if (currentQuestion) data[currentQuestion] = answers;
+      currentQuestion = line.replace(/^\d+\.\s*/, "");
+      answers = [];
+    } else {
+      const parts = line.split(",").map(p => p.trim());
+      if (parts.length === 2) answers.push([parts[0], parseInt(parts[1])]);
+    }
+  });
+
+  if (currentQuestion) data[currentQuestion] = answers;
+  return data;
+}
+
+/* =========================
+   START CUSTOM GAME
+========================= */
+$(document).on("click", "#startCustom", function() {
+  const text = $("#customInput").val();
+  const parsedData = parseCustomInput(text);
+
+  if (Object.keys(parsedData).length === 0) {
+    alert("Ingen spørsmål funnet! Sjekk formatet.");
+    return;
+  }
+
+  app.allData = parsedData;
+  app.questions = Object.keys(parsedData);
+  app.shuffle(app.questions);
+  app.currentQ = 0;
+  app.makeQuestion(app.currentQ);
+  $("body").append(app.board);
+
+  // Koble knappene
+  $(document).on("click", "#newQuestion", app.changeQuestion);
+  $(document).on("click", "#awardTeam1", app.awardPoints);
+  $(document).on("click", "#awardTeam2", app.awardPoints);
+});
