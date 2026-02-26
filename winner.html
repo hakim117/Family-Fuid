@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>Vinneren <er class=""></er></title>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  font-family:Arial, Helvetica, sans-serif;
+  background:radial-gradient(circle at center,#0f2027,#000);
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.container{
+  text-align:center;
+}
+
+h1{
+  font-size:70px;
+  opacity:0.7;
+}
+
+#winner{
+  font-size:70px;
+  font-weight:bold;
+  margin:40px 0;
+  opacity:0;
+  transform:scale(0.5);
+  transition:all 1s ease;
+}
+
+#winner.show{
+  opacity:1;
+  transform:scale(1.2);
+}
+
+.score{
+  font-size:28px;
+  opacity:0;
+  transition:opacity 1s;
+}
+
+.score.show{
+  opacity:1;
+}
+
+button{
+  margin-top:40px;
+  padding:15px 35px;
+  font-size:20px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:gold;
+  font-weight:bold;
+  opacity:0;
+  transition:opacity 1s;
+}
+
+button.show{
+  opacity:1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🏆 Vinneren er.....</h1>
+
+  <div id="winner">...</div>
+
+  <div class="score" id="score1"></div>
+  <div class="score" id="score2"></div>
+
+  <button id="restartBtn" onclick="restartGame()">Spill igjen😁 </button>
+</div>
+
+<!-- LYDER -->
+<audio id="drumroll" src="drumroll.mp3"></audio>
+<audio id="victory" src="victory.mp3"></audio>
+
+<script>
+
+/* =====================
+   HENT SCORE
+===================== */
+const team1 = parseInt(localStorage.getItem("team1Score")) || 0;
+const team2 = parseInt(localStorage.getItem("team2Score")) || 0;
+
+const winnerEl = document.getElementById("winner");
+const score1El = document.getElementById("score1");
+const score2El = document.getElementById("score2");
+const restartBtn = document.getElementById("restartBtn");
+
+score1El.textContent = "Lag 1: " + team1 + " poeng";
+score2El.textContent = "Lag 2: " + team2 + " poeng";
+
+let winnerText;
+
+if (team1 > team2) {
+  winnerText = "Lag 1 vinner!";
+}
+else if (team2 > team1) {
+  winnerText = "Lag 2 vinner!";
+}
+else {
+  winnerText = "Uavgjort!";
+}
+
+
+/* =====================
+   AI stemme
+===================== */
+function speakWinner(text){
+
+  const speech = new SpeechSynthesisUtterance(text);
+
+  function setVoice(){
+    const voices = speechSynthesis.getVoices();
+
+    const norwegian =
+      voices.find(v=>v.lang.startsWith("nb")) ||
+      voices.find(v=>v.lang.startsWith("no")) ||
+      voices.find(v=>v.lang.startsWith("en"));
+
+    if(norwegian) speech.voice = norwegian;
+
+    speech.rate = 0.9;
+    speech.pitch = 1.1;
+    speech.volume = 1;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(speech);
+  }
+
+  if(speechSynthesis.getVoices().length){
+    setVoice();
+  }else{
+    speechSynthesis.onvoiceschanged = setVoice;
+  }
+}
+
+
+/* =====================
+CONFETTI
+===================== */
+function megaConfetti(){
+
+  const duration = 5000;
+  const end = Date.now() + duration;
+
+  (function frame(){
+    confetti({
+      particleCount:12,
+      spread:120,
+      startVelocity:60,
+      origin:{x:Math.random(), y:Math.random()-0.2}
+    });
+
+    if(Date.now() < end){
+      requestAnimationFrame(frame);
+    }
+  })();
+}
+
+
+
+window.onload = () => {
+
+  const drum = document.getElementById("drumroll");
+  const victory = document.getElementById("victory");
+
+  drum.volume = 0.8;
+  victory.volume = 0.8;
+
+  // start trommer
+  drum.play().catch(()=>{});
+
+  
+  setTimeout(()=>{
+
+    drum.pause();
+
+    // vis vinner
+    winnerEl.textContent = winnerText;
+    winnerEl.classList.add("show");
+
+    score1El.classList.add("show");
+    score2El.classList.add("show");
+    restartBtn.classList.add("show");
+
+    // jubel
+    victory.play().catch(()=>{});
+
+    // konfetti
+    megaConfetti();
+
+    // 🧠 SPEAKER
+    setTimeout(()=>{
+      speakWinner(winnerText);
+    },500);
+
+  },3500);
+};
+
+
+
+function restartGame(){
+  localStorage.clear();
+  window.location.href="index.html";
+}
+
+</script>
+
+</body>
+</html>

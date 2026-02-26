@@ -1,0 +1,81 @@
+
+{
+  "Nevn noe romantisk du kan gjøre for parteren din": [
+    ["Middags-date", 33],
+    ["Blomster/gave", 25],
+    ["massasje", 15],
+    ["kos", 10],
+    ["Husarberid", 7],
+    ["Reise", 6],
+    ["Sex", 4]
+  ],
+  "Nevn Størst gjennomsnitlige pennis i Europa ": [
+    ["Nederland", 30],
+    ["Frankrike", 24],
+    ["Italia", 15],
+    ["Sverige", 13],
+    ["Portugal", 10],
+    ["Tyskland", 8],
+    ["Norge", 5],
+    ["Spania", 3]
+  ],
+  "Nevn noe man tar med på stranden": [
+    ["Håndkle", 25],
+    ["Solkrem", 19],
+    ["Badetøy", 15],
+    ["Paraply", 13],
+    ["Mat", 12], 
+    ["Solbriller", 7],
+    ["Strandleker", 5],
+    ["Drikke", 4]
+
+  ],
+  "Nevn en kjent norsk idrett": [
+    ["Fotball", 36],
+    ["Langrenn", 29],
+    ["Håndball", 15],
+    ["Skiidretter generelt", 7],
+    ["Friidrett", 6],
+    ["Svømming", 4],
+    ["Turn", 3],
+    ["Ishockey", 2]
+    ],
+
+  "Nevn noe du gjør før du legger deg": [
+    ["Pusser tennene", 40],
+    ["Ser på TV", 22],
+    ["Leser", 18],
+    ["Setter på alarm", 12],
+    ["Slukker lyset", 8],
+    ["Ta på seg selv", 5]
+  ],
+
+  "Nevn en populær Disney-figur": [
+    ["Mikke Mus", 40],
+    ["Donald Duck", 22],
+    ["Elsa", 18],
+    ["woody", 12],
+    ["Anna", 8]
+  ],
+
+  "Nevn et annen ord for dame parteren din": [
+    ["Kjæresten", 40],
+    ["Samboer", 22],
+    ["Dragen", 18],
+    ["Kjerringen", 12],
+    ["Typen", 8]
+  ],
+
+
+"Nevn noe man gjør på en regnværsdag hjemme": [
+    ["Se på film eller serier", 40],
+    ["Spille", 22],
+    ["Ta på seg selv", 18],
+    ["Lage mat", 12],
+    ["Rydde", 6],
+    ["Lese", 4],
+    ["spise snacs", 2]
+  ]
+
+}
+
